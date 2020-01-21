@@ -3,6 +3,7 @@ scikit-learn
 tensorboardX
 torch
 torchvision
+numpy 
 
 psutil
 opencv-python

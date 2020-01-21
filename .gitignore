@@ -2,7 +2,7 @@
 .vscode
 .DS_STORE
 
-online_demo/mobilenetv2_jester_online.pth.tar
+mobilenetv2_jester_online.pth.tar
 
 # Created by https://www.gitignore.io/api/python
 # Edit at https://www.gitignore.io/?templates=python

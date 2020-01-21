@@ -2,8 +2,14 @@ import torch
 import torchvision
 import os
 import cv2
+import time
+import numpy as np
+from PIL import Image, ImageOps
+
 
 from mobilenet_v2_tsm import MobileNetV2
+from image_processing import get_transform
+from gestures import Gestures
 
 
 def load_model():
@@ -60,20 +66,20 @@ def setup_window(window_name):
 
 def get_camera_capture(camera: int, width: int, height: int):
     cap = cv2.VideoCapture(camera)
-    # set a lower resolution for speed up
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
     return cap
+
 
 if __name__ == "__main__":
     model = load_model()
     model.eval()
 
-    x = torch.rand(1, 3, 224, 224)
+    input_transformed = torch.rand(1, 3, 224, 224)
     shift_buffer = init_buffer()
     with torch.no_grad():
-        y, *shift_buffer = model(x, *shift_buffer)
-        print(y)
+        predictions, *shift_buffer = model(input_transformed, *shift_buffer)
+        print(predictions)
         print([s.shape for s in shift_buffer])
     
     cap = get_camera_capture(0, 320, 240)
@@ -82,8 +88,26 @@ if __name__ == "__main__":
     window_name = 'Video Gesture Recognition'
     setup_window(window_name)
 
+    transform = get_transform()
+    shift_buffer = init_buffer()
+    gestures = Gestures()
+
     while True:
+        time_start = time.time()
         _, img = cap.read() 
+
+        with torch.no_grad():
+            image_transformed = transform([Image.fromarray(img).convert('RGB')])
+            input_transformed = image_transformed.view(1, 3, image_transformed.size(1), image_transformed.size(2))
+            predictions, *shift_buffer = model(input_transformed, *shift_buffer)
+
+            _, prediction = predictions.max(1)
+            prediction = prediction.item()
+
+            print(gestures.get_name(prediction))
+
+        time_end = time.time()
+
         cv2.imshow(window_name, img)
         key = cv2.waitKey(1)
         if is_quit_key(key):  # exit
