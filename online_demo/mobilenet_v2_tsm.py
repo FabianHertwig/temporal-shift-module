@@ -191,6 +191,6 @@ if __name__ == '__main__':
                     torch.zeros([1, 20, 7, 7])]
     with torch.no_grad():
         for _ in range(10):
-            y, shift_buffer = net(x, *shift_buffer)
+            y, *shift_buffer = net(x, *shift_buffer)
             print([s.shape for s in shift_buffer])
     

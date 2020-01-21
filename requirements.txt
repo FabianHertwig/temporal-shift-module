@@ -1,0 +1,10 @@
+tqdm
+scikit-learn
+tensorboardX
+torch
+torchvision
+
+psutil
+opencv-python
+pillow
+onnx
