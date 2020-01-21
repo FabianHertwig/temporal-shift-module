@@ -10,6 +10,7 @@ from PIL import Image, ImageOps
 from mobilenet_v2_tsm import MobileNetV2
 from image_processing import get_transform
 from gestures import Gestures
+from prediction_smoothing import PredictionSmoothing
 
 
 def load_model():
@@ -104,6 +105,7 @@ if __name__ == "__main__":
     transform = get_transform()
     shift_buffer = init_buffer()
     gestures = Gestures()
+    prediction_smoothing = PredictionSmoothing(7)
 
     while True:
         time_start = time.time()
@@ -116,13 +118,15 @@ if __name__ == "__main__":
 
             _, prediction = predictions.max(1)
             prediction = prediction.item()
+            prediction_smoothing.add_prediction(prediction)
+            smooth_prediction = prediction_smoothing.get_most_common_prediction()
 
         time_end = time.time()
         frames_per_second = 1 / (time_end - time_start)
 
         img = cv2.resize(img, (640, 480))
         img = img[:, ::-1]
-        img = add_label(img, gestures.get_name(prediction), frames_per_second)
+        img = add_label(img, gestures.get_name(smooth_prediction), frames_per_second)
         cv2.imshow(window_name, img)
 
         key = cv2.waitKey(1)
