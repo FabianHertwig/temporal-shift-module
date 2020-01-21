@@ -39,7 +39,6 @@ def init_buffer():
             torch.zeros([1, 20, 7, 7])]
 
 
-
 def is_quit_key(key):
     return key & 0xFF == ord('q') or key == 27
 
@@ -70,6 +69,20 @@ def get_camera_capture(camera: int, width: int, height: int):
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
     return cap
 
+
+def add_label(img: np.array, gesture_name: str, frames_per_second: float):
+    height, width, _ = img.shape
+    label = np.zeros([height // 10, width, 3]).astype('uint8') + 255
+    cv2.putText(label, 'Prediction: ' + gesture_name,
+                (0, int(height / 16)),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7, (0, 0, 0), 2)
+    cv2.putText(label, '{:.1f} Frames/s'.format(frames_per_second),
+                (width - 170, int(height / 16)),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7, (0, 0, 0), 2)
+    img = np.concatenate((img, label), axis=0)
+    return img
 
 if __name__ == "__main__":
     model = load_model()
@@ -104,11 +117,14 @@ if __name__ == "__main__":
             _, prediction = predictions.max(1)
             prediction = prediction.item()
 
-            print(gestures.get_name(prediction))
-
         time_end = time.time()
+        frames_per_second = 1 / (time_end - time_start)
 
+        img = cv2.resize(img, (640, 480))
+        img = img[:, ::-1]
+        img = add_label(img, gestures.get_name(prediction), frames_per_second)
         cv2.imshow(window_name, img)
+
         key = cv2.waitKey(1)
         if is_quit_key(key):  # exit
             break
