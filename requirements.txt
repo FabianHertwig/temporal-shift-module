@@ -1,11 +1,6 @@
-tqdm
-scikit-learn
-tensorboardX
-torch
-torchvision
-numpy 
+torch==1.4.0
+torchvision==0.5.0
 
-psutil
-opencv-python
-pillow
-onnx
+opencv-python==4.1.2.30
+Pillow==7.0.0
+numpy==1.18.1
