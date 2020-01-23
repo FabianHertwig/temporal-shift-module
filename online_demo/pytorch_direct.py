@@ -88,13 +88,6 @@ def add_label(img: np.array, gesture_name: str, frames_per_second: float):
 if __name__ == "__main__":
     model = load_model()
     model.eval()
-
-    input_transformed = torch.rand(1, 3, 224, 224)
-    shift_buffer = init_buffer()
-    with torch.no_grad():
-        predictions, *shift_buffer = model(input_transformed, *shift_buffer)
-        print(predictions)
-        print([s.shape for s in shift_buffer])
     
     cap = get_camera_capture(0, 320, 240)
 
