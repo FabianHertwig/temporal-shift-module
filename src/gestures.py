@@ -33,4 +33,18 @@ class Gestures:
         ]
 
     def get_name(self, id: int):
+        id = self._filter_gestures(id)
+        id = self._merge_no_gesture_classes(id)
+            
         return self.gestures[id]
+
+    def _merge_no_gesture_classes(self, id):
+        # use only single no action class
+        if id == 0:
+            id = 2
+        return id
+
+    def _filter_gestures(self, id, filtered_gestures = [7, 8, 21, 22, 3]):
+        if id in filtered_gestures:
+            id = 2
+        return id
