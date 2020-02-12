@@ -90,10 +90,7 @@ class GroupNormalize(object):
 
 
 def get_transform():
-    cropping = torchvision.transforms.Compose([
-        GroupScale(256),
-        GroupCenterCrop(224),
-    ])
+    cropping = get_crop()
     transform = torchvision.transforms.Compose([
         cropping,
         Stack(roll=False),
@@ -101,3 +98,11 @@ def get_transform():
         GroupNormalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
     return transform
+    
+def get_crop():
+    cropping = torchvision.transforms.Compose([
+        GroupScale(256),
+        GroupCenterCrop(224),
+    ])
+    return cropping
+

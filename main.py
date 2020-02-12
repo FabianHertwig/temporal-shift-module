@@ -1,45 +1,15 @@
 import os
 import time
 
-import torch
-import torchvision
 import cv2
 from PIL import Image, ImageOps
 import numpy as np
+import torch
 
-
-from src.mobilenet_v2_tsm import MobileNetV2
-from src.image_processing import get_transform
+from src.model import load_model, init_buffer
+from src.image_processing import get_transform, get_crop
 from src.gestures import Gestures
 from src.prediction_smoothing import PredictionSmoothing
-
-
-def load_model():
-    torch_module = MobileNetV2(n_class=27)
-    # checkpoint not downloaded
-    if not os.path.exists("mobilenetv2_jester_online.pth.tar"):
-        print('Downloading PyTorch checkpoint...')
-        import urllib.request
-        url = 'https://hanlab.mit.edu/projects/tsm/models/mobilenetv2_jester_online.pth.tar'
-        urllib.request.urlretrieve(url, './mobilenetv2_jester_online.pth.tar')
-    torch_module.load_state_dict(torch.load(
-        "mobilenetv2_jester_online.pth.tar"))
-
-    return torch_module
-
-
-def init_buffer():
-    return [torch.zeros([1, 3, 56, 56]),
-            torch.zeros([1, 4, 28, 28]),
-            torch.zeros([1, 4, 28, 28]),
-            torch.zeros([1, 8, 14, 14]),
-            torch.zeros([1, 8, 14, 14]), 
-            torch.zeros([1, 8, 14, 14]), 
-            torch.zeros([1, 12, 14, 14]), 
-            torch.zeros([1, 12, 14, 14]), 
-            torch.zeros([1, 20, 7, 7]), 
-            torch.zeros([1, 20, 7, 7])]
-
 
 def is_quit_key(key):
     return key & 0xFF == ord('q') or key == 27
@@ -89,7 +59,7 @@ def add_label(img: np.array, gesture_name: str, frames_per_second: float):
 if __name__ == "__main__":
     model = load_model()
     model.eval()
-    
+
     cap = get_camera_capture(0, 320, 240)
 
     full_screen = False
@@ -103,10 +73,11 @@ if __name__ == "__main__":
 
     while True:
         time_start = time.time()
-        _, img = cap.read() 
+        _, img = cap.read()
 
         with torch.no_grad():
-            image_transformed = transform([Image.fromarray(img).convert('RGB')])
+            pil_image = [Image.fromarray(img).convert('RGB')]
+            image_transformed = transform(pil_image)
             input_transformed = image_transformed.view(1, 3, image_transformed.size(1), image_transformed.size(2))
             predictions, *shift_buffer = model(input_transformed, *shift_buffer)
 
